@@ -1,0 +1,436 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1404\cocoasubrtf460
+{\fonttbl\f0\fnil\fcharset0 Menlo-Regular;}
+{\colortbl;\red255\green255\blue255;\red0\green116\blue0;\red170\green13\blue145;\red92\green38\blue153;
+\red28\green0\blue207;\red196\green26\blue22;\red46\green13\blue110;\red38\green71\blue75;\red63\green110\blue116;
+}
+\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\deftab529
+\pard\tx529\pardeftab529\pardirnatural\partightenfactor0
+
+\f0\fs22 \cf2 \CocoaLigature0 //\
+//  GameScene.swift\
+//  Simple Shooter\
+//\
+//  Created by Phillip Viau on 4/27/16.\
+//  Copyright (c) 2016 Build it Love it. All rights reserved.\
+//\
+\cf0 \
+\cf3 import\cf0  SpriteKit\
+\
+\cf3 var\cf0  player = \cf4 SKSpriteNode\cf0 ?()\
+\cf3 var\cf0  projectile = \cf4 SKSpriteNode\cf0 ?()\
+\cf3 var\cf0  enemy = \cf4 SKSpriteNode\cf0 ()\
+\cf3 var\cf0  star = \cf4 SKSpriteNode\cf0 ?()\
+\
+\cf3 var\cf0  scoreLabel = \cf4 SKLabelNode\cf0 ()\
+\cf3 var\cf0  mainLabel = \cf4 SKLabelNode\cf0 ?()\
+\
+\cf3 var\cf0  locationLabel = \cf4 SKLabelNode\cf0 ()\
+\
+\cf3 var\cf0  fireProjectileRate = \cf5 0.15\cf0 \
+\cf3 var\cf0  projectileSpeed = \cf5 0.51\cf0 \
+\
+\cf3 var\cf0  enemySpeed = \cf5 4.24\cf0 \
+\cf3 var\cf0  enemySpawnRate = \cf5 0.35\cf0 \
+\cf3 var\cf0  enemyTypes : [\cf4 String\cf0 ] = [\cf6 ""\cf0 , \cf6 ""\cf0 , \cf6 "Mini-Boss"\cf0 , \cf6 "Boss"\cf0 ]\
+\cf3 var\cf0  enemyDamage : [\cf4 Double\cf0 ] = [\cf5 1.0\cf0 , \cf5 2.25\cf0 , \cf5 1.50\cf0 , \cf5 3\cf0 ]\
+\cf3 var\cf0  enemyDamageMultiplier : [\cf4 Int\cf0 ] = [\cf5 1\cf0 , \cf5 2\cf0 , \cf5 3\cf0 , \cf5 4\cf0 , \cf5 5\cf0 ]\
+\
+\cf3 var\cf0  starSpeed = \cf5 4.82\cf0 \
+\cf3 var\cf0  starSpawnRate = \cf5 0.0035\cf0 \
+\
+\cf3 var\cf0  isAlive = \cf3 true\cf0 \
+\cf3 var\cf0  touching = \cf3 false\cf0 \
+\cf3 var\cf0  isTopScrolliing = \cf3 true\cf0 \
+\
+\cf3 var\cf0  score = \cf5 0\cf0 \
+\cf3 var\cf0  playerLives = \cf5 3\cf0 \
+\cf3 var\cf0  playerHealth = \cf5 100\cf0 \
+\
+\cf3 var\cf0  textColorHUD = \cf4 UIColor\cf0 (red: \cf5 0.95\cf0 , green: \cf5 0.95\cf0 , blue: \cf5 0.95\cf0 , alpha: \cf5 1.0\cf0 )\
+\
+\cf3 var\cf0  projectilesTypes : [\cf4 String\cf0 ] = [\cf6 "Bullet"\cf0 , \cf6 "Laser"\cf0 , \cf6 "Spread"\cf0 , \cf6 "Twist"\cf0 ]\
+\
+\cf3 var\cf0  playerPowerUp : [\cf4 String\cf0 ] = [\cf6 "Missile"\cf0 , \cf6 "Spread"\cf0 , \cf6 "Homing"\cf0 , \cf6 "Conucussive"\cf0 , \cf6 "Spiral"\cf0 ]\
+\
+\cf3 var\cf0  projectileLevel = \cf5 1\cf0 \
+\
+\cf3 var\cf0  projectileDamage : [\cf4 Float\cf0 ] = [\cf5 1.0\cf0 , \cf5 3.5\cf0 , \cf5 2.25\cf0 , \cf5 1.50\cf0 ]\
+\
+\
+\
+\
+\cf3 struct\cf0  physicsCategory\{\
+    \cf3 static\cf0  \cf3 let\cf0  player : \cf4 UInt32\cf0  = \cf5 1\cf0 \
+    \cf3 static\cf0  \cf3 let\cf0  enemy : \cf4 UInt32\cf0  = \cf5 2\cf0 \
+    \cf3 static\cf0  \cf3 let\cf0  projectile : \cf4 UInt32\cf0  = \cf5 3\cf0 \
+    \cf3 static\cf0  \cf3 let\cf0  projectilePowerUp : \cf4 UInt32\cf0  = \cf5 4\cf0 \
+    \cf2 //static let star : UInt32 = 0\
+\cf0 \}\
+\
+\cf3 class\cf0  GameScene: \cf4 SKScene\cf0 , \cf4 SKPhysicsContactDelegate\cf0  \{ \cf2 // add SKPhysicsContactDelegate for collision\
+\cf0     \cf3 override\cf0  \cf3 func\cf0  didMoveToView(view: \cf4 SKView\cf0 ) \{\
+        \
+        \cf4 physicsWorld\cf0 .\cf4 contactDelegate\cf0  = \cf3 self\cf0  \cf2 // instantiates contactDelegate to self\
+\cf0         \
+        \cf3 self\cf0 .\cf4 backgroundColor\cf0  = \cf4 UIColor\cf0 .\cf7 blackColor\cf0 ()\
+        \cf8 spawnPlayer\cf0 ()\
+        \cf8 spawnScoreLabel\cf0 ()\
+        \cf8 spawnMainLabel\cf0 ()\
+        \cf8 spawnLocatoinLabel\cf0 ()\
+        \cf8 spawnProjectile\cf0 ()\
+        \cf8 spawnEnemy\cf0 ()\
+        \cf8 fireProjectile\cf0 ()\
+        \cf8 randomStarTimerSpawn\cf0 ()\
+        \cf8 randomEnemyTimerSpawn\cf0 ()\
+        \cf8 updateScore\cf0 ()\
+        \cf8 hideLabel\cf0 ()\
+        \cf8 resetVariablesOnStart\cf0 ()\
+        \cf2 //spawnStars()\
+\cf0         \
+    \}\
+    \
+    \cf3 override\cf0  \cf3 func\cf0  touchesBegan(touches: \cf4 Set\cf0 <\cf4 UITouch\cf0 >, withEvent event: \cf4 UIEvent\cf0 ?) \{\
+       \cf2 /* Called when a touch begins */\cf0 \
+        \
+        \cf3 for\cf0  touch \cf3 in\cf0  touches \{\
+            \cf3 if\cf0  \cf9 isAlive\cf0  \{\
+                \cf9 touching\cf0  = \cf3 true\cf0 \
+            \}\
+        \}\
+        \
+        \
+    \}\
+    \
+    \cf3 override\cf0  \cf3 func\cf0  touchesEnded(touches: \cf4 Set\cf0 <\cf4 UITouch\cf0 >, withEvent event: \cf4 UIEvent\cf0 ?) \{\
+        \cf9 touching\cf0  = \cf3 false\cf0 \
+    \}\
+    \
+    \
+    \
+    \cf3 override\cf0  \cf3 func\cf0  touchesMoved(touches: \cf4 Set\cf0 <\cf4 UITouch\cf0 >, withEvent event: \cf4 UIEvent\cf0 ?) \{\
+        \cf3 for\cf0  touch \cf3 in\cf0  touches\{\
+            \cf3 let\cf0  touchLocation = touch.\cf7 locationInNode\cf0 (\cf3 self\cf0 )\
+            \cf9 locationLabel\cf0 .\cf4 text\cf0  = \cf6 "X: \cf0 \\\cf6 (\cf9 player\cf0 !.\cf4 position\cf0 .\cf4 x\cf6 ) Y: \cf0 \\\cf6 (\cf9 player\cf0 !.\cf4 position\cf0 .\cf4 y\cf6 )"\cf0 \
+            \
+            \cf2 //locationLabel?.text = "X: \\(frame.size.width) Y: \\(frame.size.height)"\
+\cf0             \
+            \cf3 if\cf0  \cf9 isAlive\cf0  \{\
+                \cf3 if\cf0  touchLocation.\cf4 x\cf0  <= \cf5 320\cf0  \{\
+                    \cf9 player\cf0 ?.\cf4 position\cf0 .\cf4 x\cf0  = \cf5 320\cf0 \
+                    \cf9 player\cf0 ?.\cf4 position\cf0 .\cf4 y\cf0  = touchLocation.\cf4 y\cf0 \
+                \}\cf3 else\cf0  \cf3 if\cf0  touchLocation.\cf4 y\cf0  <= \cf5 20\cf0  \{\
+                    \cf9 player\cf0 ?.\cf4 position\cf0 .\cf4 x\cf0  = touchLocation.\cf4 x\cf0 \
+                    \cf9 player\cf0 ?.\cf4 position\cf0 .\cf4 y\cf0  = \cf5 20\cf0 \
+                \}\cf3 else\cf0  \cf3 if\cf0  touchLocation.\cf4 x\cf0  >= \cf4 frame\cf0 .\cf4 width\cf0  - \cf5 324\cf0   \{\
+                    \cf9 player\cf0 ?.\cf4 position\cf0 .\cf4 x\cf0  = \cf4 frame\cf0 .\cf4 width\cf0  - \cf5 324\cf0 \
+                    \cf9 player\cf0 ?.\cf4 position\cf0 .\cf4 y\cf0  = touchLocation.\cf4 y\cf0 \
+                    \
+                \}\cf3 else\cf0  \cf3 if\cf0  touchLocation.\cf4 x\cf0  <= \cf5 320\cf0  && touchLocation.\cf4 y\cf0  <= \cf5 20\cf0  \{\
+                    \
+                    \cf9 player\cf0 ?.\cf4 position\cf0 .\cf4 x\cf0  = \cf5 320\cf0 \
+                    \cf9 player\cf0 ?.\cf4 position\cf0 .\cf4 y\cf0  = \cf5 20\cf0 \
+                \
+                \}\cf3 else\cf0 \{\
+                    \cf9 player\cf0 ?.\cf4 position\cf0 .\cf4 x\cf0  = touchLocation.\cf4 x\cf0 \
+                    \cf9 player\cf0 ?.\cf4 position\cf0 .\cf4 y\cf0  = touchLocation.\cf4 y\cf0 \
+                \}\
+                \
+                \
+            \}\
+            \
+            \cf3 if\cf0  !\cf9 isAlive\cf0  \{\
+                \cf9 touching\cf0  = \cf3 false\cf0 \
+                \cf9 player\cf0 ?.\cf4 position\cf0 .\cf4 x\cf0  = -\cf5 200\cf0  \cf2 // moves offscreen for performance if player dies\
+\cf0             \}\
+            \
+        \}\
+    \}\
+   \
+    \cf3 override\cf0  \cf3 func\cf0  update(currentTime: \cf4 CFTimeInterval\cf0 ) \{\
+        \cf2 /* Called before each frame is rendered */\cf0 \
+        \cf3 if\cf0  !\cf9 isAlive\cf0  \{\
+            \cf9 touching\cf0  = \cf3 false\cf0 \
+            \cf9 player\cf0 ?.\cf4 position\cf0 .\cf4 x\cf0  = -\cf5 200\cf0  \cf2 // moves offscreen for performance if player dies\
+\cf0             \
+        \}\
+        \
+        \
+        \
+        \
+        \
+    \}\
+    \
+    \cf3 func\cf0  spawnPlayer()\{\
+        \
+        \cf9 player\cf0  = \cf4 SKSpriteNode\cf0 (imageNamed: \cf6 "playerBlue"\cf0 ) \cf2 // instantiates player object size\
+\cf0         \cf9 player\cf0 ?.\cf4 position\cf0  = \cf4 CGPoint\cf0 (x: \cf7 CGRectGetMidX\cf0 (\cf3 self\cf0 .\cf4 frame\cf0 ), y: \cf5 20\cf0 ) \cf2 // instantiates object to scene at location\
+\cf0         \cf9 player\cf0 ?.\cf4 physicsBody\cf0  = \cf4 SKPhysicsBody\cf0 (rectangleOfSize: (\cf9 player\cf0 ?.\cf4 size\cf0 )!) \cf2 // player sprite\
+\cf0         \cf9 player\cf0 ?.\cf4 physicsBody\cf0 ?.\cf4 affectedByGravity\cf0  = \cf3 false\cf0  \cf2 // prevents player sprite from being affected by gravity\
+\cf0         \cf9 player\cf0 ?.\cf4 physicsBody\cf0 ?.\cf4 categoryBitMask\cf0  = \cf9 physicsCategory\cf0 .player \cf2 // assigns player to physics category from struct\
+\cf0         \cf9 player\cf0 ?.\cf4 physicsBody\cf0 ?.\cf4 contactTestBitMask\cf0  = \cf9 physicsCategory\cf0 .enemy \cf2 // assigns enemy to physics categor from struct\
+\cf0         \cf9 player\cf0 ?.\cf4 physicsBody\cf0 ?.\cf4 dynamic\cf0  = \cf3 false\cf0 \
+        \
+        \cf3 self\cf0 .\cf7 addChild\cf0 (\cf9 player\cf0 !) \cf2 // adds player to scene as a child object to parent self\
+\cf0     \}\
+    \
+    \cf3 func\cf0  spawnScoreLabel()\{\
+        \cf9 scoreLabel\cf0  = \cf4 SKLabelNode\cf0 (fontNamed: \cf6 "Futura"\cf0 )\
+        \cf9 scoreLabel\cf0 .\cf4 fontSize\cf0  = \cf5 20\cf0 \
+        \cf9 scoreLabel\cf0 .\cf4 fontColor\cf0  = \cf9 textColorHUD\cf0 \
+        \cf9 scoreLabel\cf0 .\cf4 position\cf0  = \cf4 CGPoint\cf0 (x: \cf7 CGRectGetMidX\cf0 (\cf3 self\cf0 .\cf4 frame\cf0 ) + \cf5 160\cf0 , y: \cf7 CGRectGetMaxY\cf0 (\cf3 self\cf0 .\cf4 frame\cf0 ) - \cf5 35\cf0 )\
+        \cf9 scoreLabel\cf0 .\cf4 text\cf0  = \cf6 "Score"\cf0 \
+        \cf3 self\cf0 .\cf7 addChild\cf0 (\cf9 scoreLabel\cf0 )\
+        \
+        \
+    \}\
+    \
+    \cf3 func\cf0  spawnLocatoinLabel()\{\
+        \cf9 locationLabel\cf0  = \cf4 SKLabelNode\cf0 (fontNamed: \cf6 "Futura"\cf0 )\
+        \cf9 locationLabel\cf0 .\cf4 fontSize\cf0  = \cf5 18\cf0 \
+        \cf9 locationLabel\cf0 .\cf4 fontColor\cf0  = \cf9 textColorHUD\cf0 \
+        \cf9 locationLabel\cf0 .\cf4 position\cf0  = \cf4 CGPoint\cf0 (x: \cf7 CGRectGetMidX\cf0 (\cf3 self\cf0 .\cf4 frame\cf0 ), y: \cf7 CGRectGetMaxY\cf0 (\cf3 self\cf0 .\cf4 frame\cf0 ) - \cf5 60\cf0 )\
+        \cf9 locationLabel\cf0 .\cf4 text\cf0  = \cf6 "X: 0 Y: 0"\cf0 \
+        \
+        \cf3 self\cf0 .\cf7 addChild\cf0 (\cf9 locationLabel\cf0 )\
+    \}\
+    \
+    \cf3 func\cf0  spawnMainLabel()\{\
+        \cf9 mainLabel\cf0  = \cf4 SKLabelNode\cf0 (fontNamed: \cf6 "Futura"\cf0 )\
+        \cf9 mainLabel\cf0 ?.\cf4 fontSize\cf0  = \cf5 100\cf0 \
+        \cf9 mainLabel\cf0 ?.\cf4 fontColor\cf0  = \cf9 textColorHUD\cf0 \
+        \cf9 mainLabel\cf0 ?.\cf4 position\cf0  = \cf4 CGPoint\cf0 (x: \cf7 CGRectGetMidX\cf0 (\cf3 self\cf0 .\cf4 frame\cf0 ), y: \cf7 CGRectGetMidY\cf0 (\cf3 self\cf0 .\cf4 frame\cf0 ))\
+        \cf9 mainLabel\cf0 ?.\cf4 text\cf0  = \cf6 "Start"\cf0 \
+        \
+        \cf3 self\cf0 .\cf7 addChild\cf0 (\cf9 mainLabel\cf0 !)\
+        \
+    \}\
+    \
+    \cf3 func\cf0  spawnProjectile()\{\
+        \
+        \cf9 projectile\cf0  = \cf4 SKSpriteNode\cf0 (imageNamed: \cf6 "doubleProjectile"\cf0 )\
+        \cf9 projectile\cf0 !.\cf4 position\cf0  = \cf4 CGPoint\cf0 (x: (\cf9 player\cf0 ?.\cf4 position\cf0 .\cf4 x\cf0 )!, y: (\cf9 player\cf0 ?.\cf4 position\cf0 .\cf4 y\cf0 )!)\
+        \
+        \cf9 projectile\cf0 ?.\cf4 physicsBody\cf0  = \cf4 SKPhysicsBody\cf0 (rectangleOfSize: (\cf9 projectile\cf0 ?.\cf4 size\cf0 )!)\
+        \cf9 projectile\cf0 ?.\cf4 physicsBody\cf0 ?.\cf4 affectedByGravity\cf0  = \cf3 false\cf0 \
+        \cf9 projectile\cf0 ?.\cf4 physicsBody\cf0 ?.\cf4 categoryBitMask\cf0  = \cf9 physicsCategory\cf0 .projectile\
+        \cf9 projectile\cf0 ?.\cf4 physicsBody\cf0 ?.\cf4 contactTestBitMask\cf0  = \cf9 physicsCategory\cf0 .enemy\
+        \cf9 projectile\cf0 ?.\cf4 physicsBody\cf0 ?.\cf4 dynamic\cf0  = \cf3 false\cf0 \
+        \cf9 projectile\cf0 ?.\cf4 zPosition\cf0  = -\cf5 1\cf0 \
+        \
+        \cf3 let\cf0  moveForward = \cf4 SKAction\cf0 .\cf7 moveToY\cf0 (\cf5 800\cf0 , duration: \cf9 projectileSpeed\cf0 )\
+        \cf3 let\cf0  destroy = \cf4 SKAction\cf0 .\cf7 removeFromParent\cf0 ()\
+        \
+        \cf9 projectile\cf0 !.\cf7 runAction\cf0 (\cf4 SKAction\cf0 .\cf7 sequence\cf0 ([moveForward,destroy]))\
+        \cf3 self\cf0 .\cf7 addChild\cf0 (\cf9 projectile\cf0 !)\
+        \
+    \}\
+    \
+    \cf3 func\cf0  spawnEnemy()\{\
+        \cf2 //let enemySize = 30\
+\cf0         \cf9 enemy\cf0  = \cf4 SKSpriteNode\cf0 (imageNamed: \cf6 "enemy"\cf0 )\
+        \cf9 enemy\cf0 .\cf4 position\cf0  = \cf4 CGPoint\cf0 (x: \cf4 Int\cf0 (\cf7 arc4random_uniform\cf0 (\cf5 410\cf0 ) + \cf5 310\cf0 ), y: \cf5 768\cf0 )\
+        \cf9 enemy\cf0 .\cf4 physicsBody\cf0  = \cf4 SKPhysicsBody\cf0 (rectangleOfSize: \cf9 enemy\cf0 .\cf4 size\cf0 )\
+        \cf9 enemy\cf0 .\cf4 physicsBody\cf0 ?.\cf4 affectedByGravity\cf0  = \cf3 false\cf0 \
+        \cf9 enemy\cf0 .\cf4 physicsBody\cf0 ?.\cf4 categoryBitMask\cf0  = \cf9 physicsCategory\cf0 .enemy\
+        \cf9 enemy\cf0 .\cf4 physicsBody\cf0 ?.\cf4 contactTestBitMask\cf0  = \cf9 physicsCategory\cf0 .projectile\
+        \cf9 enemy\cf0 .\cf4 physicsBody\cf0 ?.\cf4 allowsRotation\cf0  = \cf3 false\cf0  \cf2 // prevents object from rotating when colliding with other physics object\
+\cf0         \cf9 enemy\cf0 .\cf4 physicsBody\cf0 ?.\cf4 dynamic\cf0  = \cf3 true\cf0  \cf2 // adds collision\
+\cf0         \cf9 enemy\cf0 .\cf4 physicsBody\cf0 ?.\cf4 collisionBitMask\cf0  = \cf5 0\cf0  \cf2 // prevents moving if hit other physics object\
+\cf0         \
+        \
+        \cf3 let\cf0  moveForward = \cf4 SKAction\cf0 .\cf7 moveToY\cf0 (\cf5 20\cf0 , duration: \cf9 enemySpeed\cf0 )\
+        \cf3 let\cf0  destroy = \cf4 SKAction\cf0 .\cf7 removeFromParent\cf0 ()\
+        \cf9 enemy\cf0 .\cf7 runAction\cf0 (\cf4 SKAction\cf0 .\cf7 sequence\cf0 ([moveForward, destroy]))\
+        \
+        \
+        \
+        \cf3 self\cf0 .\cf7 addChild\cf0 (\cf9 enemy\cf0 )\
+        \
+        \
+    \}\
+    \
+    \cf3 func\cf0  spawnExplosion(enemyTemp: \cf4 SKSpriteNode\cf0 )\{\
+        \cf3 let\cf0  explosionEmitterPath : \cf4 NSString\cf0  = \cf4 NSBundle\cf0 .\cf7 mainBundle\cf0 ().\cf7 pathForResource\cf0 (\cf6 "explosion"\cf0 , ofType: \cf6 "sks"\cf0 )!\
+        \cf3 let\cf0  explosion = \cf4 NSKeyedUnarchiver\cf0 .\cf7 unarchiveObjectWithFile\cf0 (explosionEmitterPath \cf3 as\cf0  \cf4 String\cf0 ) \cf3 as\cf0 ! \cf4 SKEmitterNode\cf0 \
+        \
+        explosion.\cf4 position\cf0  = \cf4 CGPoint\cf0 (x: enemyTemp.\cf4 position\cf0 .\cf4 x\cf0 , y: enemyTemp.\cf4 position\cf0 .\cf4 y\cf0 )\
+        explosion.\cf4 zPosition\cf0  = \cf5 1\cf0 \
+        explosion.\cf4 targetNode\cf0  = \cf3 self\cf0 \
+        \
+        \cf3 self\cf0 .\cf7 addChild\cf0 (explosion)\
+        \
+        \cf3 let\cf0  explosionTimerRemove = \cf4 SKAction\cf0 .\cf7 waitForDuration\cf0 (\cf5 0.5\cf0 )\
+        \cf3 let\cf0  removeExplosion = \cf4 SKAction\cf0 .\cf7 runBlock\cf0 \{\
+            explosion.\cf7 removeFromParent\cf0 ()\
+            \
+        \}\
+        \
+        \cf3 self\cf0 .\cf7 runAction\cf0 (\cf4 SKAction\cf0 .\cf7 sequence\cf0 ([explosionTimerRemove, removeExplosion]))\
+        \
+        \
+    \}\
+    \
+    \cf3 func\cf0  randomStarTimerSpawn()\{\
+        \cf3 let\cf0  spawnStarTimer = \cf4 SKAction\cf0 .\cf7 waitForDuration\cf0 (\cf9 starSpawnRate\cf0 )\
+        \cf3 let\cf0  spawn = \cf4 SKAction\cf0 .\cf7 runBlock\cf0 \{\
+            \cf2 //self.spawnStars()\
+\cf0             \cf3 self\cf0 .\cf8 spawnBackgroundStars\cf0 ()\
+        \}\
+        \
+        \cf3 let\cf0  sequence = \cf4 SKAction\cf0 .\cf7 sequence\cf0 ([spawnStarTimer, spawn])\
+        \cf3 self\cf0 .\cf7 runAction\cf0 (\cf4 SKAction\cf0 .\cf7 repeatActionForever\cf0 (sequence))\
+    \}\
+    \
+    \cf3 func\cf0  fireProjectile()\{\
+        \cf3 let\cf0  fireProjectileTimer = \cf4 SKAction\cf0 .\cf7 waitForDuration\cf0 (\cf9 fireProjectileRate\cf0 )\
+        \cf3 let\cf0  spawn = \cf4 SKAction\cf0 .\cf7 runBlock\cf0 \{\
+            \cf3 if\cf0  \cf9 touching\cf0  \{\
+                \cf3 self\cf0 .\cf8 spawnProjectile\cf0 ()\
+            \}\
+        \}\
+        \
+        \
+        \
+        \
+        \cf3 let\cf0  sequence = \cf4 SKAction\cf0 .\cf7 sequence\cf0 ([fireProjectileTimer, spawn])\
+        \
+         \cf3 self\cf0 .\cf7 runAction\cf0 (\cf4 SKAction\cf0 .\cf7 repeatActionForever\cf0 (sequence))\
+        \
+        \
+    \}\
+    \
+    \cf3 func\cf0  randomEnemyTimerSpawn()\{\
+        \cf3 let\cf0  spawnEnemyTimer = \cf4 SKAction\cf0 .\cf7 waitForDuration\cf0 (\cf9 enemySpawnRate\cf0 )\
+        \cf3 let\cf0  spawn = \cf4 SKAction\cf0 .\cf7 runBlock\cf0 \{\
+            \cf3 self\cf0 .\cf8 spawnEnemy\cf0 ()\
+        \}\
+        \
+        \
+        \
+        \cf3 let\cf0  sequence = \cf4 SKAction\cf0 .\cf7 sequence\cf0 ([spawnEnemyTimer, spawn])\
+        \cf3 self\cf0 .\cf7 runAction\cf0 (\cf4 SKAction\cf0 .\cf7 repeatActionForever\cf0 (sequence))\
+    \}\
+    \
+    \cf3 func\cf0  didBeginContact(contact: \cf4 SKPhysicsContact\cf0 ) \{ \cf2 // collision detection function\
+\cf0         \cf3 let\cf0  firstBody : \cf4 SKPhysicsBody\cf0  = contact.\cf4 bodyA\cf0  \cf2 // assigns first collided object to variable\
+\cf0         \cf3 let\cf0  secondBody : \cf4 SKPhysicsBody\cf0  = contact.\cf4 bodyB\cf0  \cf2 // assigns second collided object to variable\
+\cf0         \
+        \cf3 if\cf0  (((firstBody.\cf4 categoryBitMask\cf0  == \cf9 physicsCategory\cf0 .enemy) && (secondBody.\cf4 categoryBitMask\cf0  == \cf9 physicsCategory\cf0 .player)) || ((firstBody.\cf4 categoryBitMask\cf0  == \cf9 physicsCategory\cf0 .player) && (secondBody.\cf4 categoryBitMask\cf0  == \cf9 physicsCategory\cf0 .enemy)))\{ \cf2 // checks if enemy and player collide OR if player and enemy collide\
+\cf0             \
+                \cf8 enemyPlayerCollision\cf0 (firstBody.\cf4 node\cf0  \cf3 as\cf0 ! \cf4 SKSpriteNode\cf0 , playerTemp: secondBody.\cf4 node\cf0  \cf3 as\cf0 ! \cf4 SKSpriteNode\cf0 )\
+            \
+            \}\
+        \
+        \cf3 if\cf0  (((firstBody.\cf4 categoryBitMask\cf0  == \cf9 physicsCategory\cf0 .enemy) && (secondBody.\cf4 categoryBitMask\cf0  == \cf9 physicsCategory\cf0 .projectile)) || ((firstBody.\cf4 categoryBitMask\cf0  == \cf9 physicsCategory\cf0 .projectile) && (secondBody.\cf4 categoryBitMask\cf0  == \cf9 physicsCategory\cf0 .enemy)))\{ \cf2 // checks if enemy and projectile collide OR if projectile and enemy collide\
+\cf0             \
+            \cf8 spawnExplosion\cf0 (firstBody.\cf4 node\cf0  \cf3 as\cf0 ! \cf4 SKSpriteNode\cf0 )\
+            \cf8 projectileCollision\cf0 (firstBody.\cf4 node\cf0  \cf3 as\cf0 ! \cf4 SKSpriteNode\cf0 , projectileTemp: secondBody.\cf4 node\cf0  \cf3 as\cf0 ! \cf4 SKSpriteNode\cf0 )\
+            \
+        \}\
+        \
+       \
+        \
+        \
+    \}\
+    \
+    \cf3 func\cf0  projectileCollision(enemyTemp: \cf4 SKSpriteNode\cf0 , projectileTemp: \cf4 SKSpriteNode\cf0 )\{\
+        enemyTemp.\cf7 removeFromParent\cf0 ()\
+        projectileTemp.\cf7 removeFromParent\cf0 ()\
+        \
+        \cf9 score\cf0  += \cf5 1\cf0 \
+        \
+        \cf8 updateScore\cf0 ()\
+    \}\
+    \
+    \cf3 func\cf0  enemyPlayerCollision(enemyTemp: \cf4 SKSpriteNode\cf0 , playerTemp: \cf4 SKSpriteNode\cf0 )\{\
+        \
+        \cf9 mainLabel\cf0 ?.\cf4 fontSize\cf0  = \cf5 50\cf0 \
+        \cf9 mainLabel\cf0 ?.\cf4 alpha\cf0  = \cf5 1.0\cf0 \
+        \cf9 mainLabel\cf0 ?.\cf4 text\cf0  = \cf6 "Game Over"\cf0 \
+        \
+        \cf9 player\cf0 ?.\cf7 removeFromParent\cf0 ()\
+        \
+        \cf9 isAlive\cf0  = \cf3 false\cf0 \
+        \
+        \cf8 waitThenMoveToTitleScreen\cf0 ()\
+        \
+    \}\
+    \
+    \cf3 func\cf0  waitThenMoveToTitleScreen()\{\
+        \
+        \cf3 let\cf0  wait = \cf4 SKAction\cf0 .\cf7 waitForDuration\cf0 (\cf5 3.0\cf0 )\
+        \cf3 let\cf0  transition = \cf4 SKAction\cf0 .\cf7 runBlock\cf0 \{\
+            \cf3 self\cf0 .\cf4 view\cf0 ?.\cf7 presentScene\cf0 (\cf9 TitleScene\cf0 (), transition: \cf4 SKTransition\cf0 .\cf7 crossFadeWithDuration\cf0 (\cf5 1.0\cf0 ))\
+        \}\
+        \
+        \cf3 let\cf0  sequence = \cf4 SKAction\cf0 .\cf7 sequence\cf0 ([wait, transition])\
+        \
+        \cf3 self\cf0 .\cf7 runAction\cf0 (\cf4 SKAction\cf0 .\cf7 repeatAction\cf0 (sequence, count: \cf5 1\cf0 ))\
+        \
+        \
+    \}\
+    \
+    \
+    \cf3 func\cf0  updateScore()\{\
+        \cf9 scoreLabel\cf0 .\cf4 text\cf0  = \cf6 "Score \cf0 \\\cf6 (\cf9 score\cf6 )"\cf0 \
+    \}\
+    \
+    \cf3 func\cf0  hideLabel()\{\
+        \cf3 let\cf0  wait = \cf4 SKAction\cf0 .\cf7 waitForDuration\cf0 (\cf5 3.0\cf0 )\
+        \cf3 let\cf0  hide = \cf4 SKAction\cf0 .\cf7 runBlock\cf0 \{\
+            \cf9 mainLabel\cf0 ?.\cf4 alpha\cf0  = \cf5 0.0\cf0 \
+        \}\
+        \
+        \cf3 let\cf0  sequence = \cf4 SKAction\cf0 .\cf7 sequence\cf0 ([wait, hide])\
+        \cf3 self\cf0 .\cf7 runAction\cf0 (\cf4 SKAction\cf0 .\cf7 repeatAction\cf0 (sequence, count: \cf5 1\cf0 ))\
+        \
+    \}\
+    \
+    \cf3 func\cf0  resetVariablesOnStart()\{ \cf2 // function to reset variables back to default\
+\cf0         \cf9 isAlive\cf0  = \cf3 true\cf0 \
+        \cf9 score\cf0  = \cf5 0\cf0 \
+    \}\
+    \
+    \cf3 func\cf0  spawnBackgroundStars()\{\
+        \cf3 let\cf0  starSize = \cf4 Int\cf0 ((\cf7 arc4random_uniform\cf0 (\cf5 3\cf0 ) + \cf4 UInt32\cf0 (\cf5 0.5\cf0 )))\
+        \
+        \cf9 star\cf0  = \cf4 SKSpriteNode\cf0 (color: \cf4 UIColor\cf0 .\cf7 whiteColor\cf0 (), size: \cf4 CGSize\cf0 (width: starSize, height: starSize))\
+        \cf9 star\cf0 !.\cf4 position\cf0  = \cf4 CGPoint\cf0 (x: \cf4 Int\cf0 (\cf7 arc4random_uniform\cf0 (\cf5 420\cf0 ) + \cf5 300\cf0 ), y: \cf5 800\cf0 )\
+        \cf9 star\cf0 ?.\cf4 physicsBody\cf0  = \cf4 SKPhysicsBody\cf0 (rectangleOfSize: \cf9 star\cf0 !.\cf4 size\cf0 )\
+        \cf9 star\cf0 ?.\cf4 physicsBody\cf0 ?.\cf4 affectedByGravity\cf0  = \cf3 false\cf0 \
+        \cf2 //star?.physicsBody?.categoryBitMask = physicsCategory.enemy\
+\cf0         \cf2 //star?.physicsBody?.contactTestBitMask = physicsCategory.projectile\
+\cf0         \cf9 star\cf0 ?.\cf4 physicsBody\cf0 ?.\cf4 allowsRotation\cf0  = \cf3 false\cf0  \cf2 // prevents object from ro\
+\cf0         \cf9 star\cf0 ?.\cf4 physicsBody\cf0 ?.\cf4 dynamic\cf0  = \cf3 false\cf0 \
+        \cf9 star\cf0 ?.\cf4 zPosition\cf0  = -\cf5 2\cf0 \
+        \
+        \cf3 let\cf0  moveForward = \cf4 SKAction\cf0 .\cf7 moveToY\cf0 (-\cf5 5\cf0 , duration: \cf9 starSpeed\cf0  - \cf5 2.45\cf0 )\
+        \cf3 let\cf0  destroy = \cf4 SKAction\cf0 .\cf7 removeFromParent\cf0 ()\
+        \cf9 star\cf0 ?.\cf7 runAction\cf0 (\cf4 SKAction\cf0 .\cf7 sequence\cf0 ([moveForward, destroy]))\
+        \
+        \cf3 self\cf0 .\cf7 addChild\cf0 (\cf9 star\cf0 !)\
+        \
+    \}\
+    \
+    \cf3 func\cf0  spawnStars()\{\
+        \cf3 let\cf0  starSize = \cf4 Int\cf0 ((\cf7 arc4random_uniform\cf0 (\cf5 2\cf0 ) + \cf4 UInt32\cf0 (\cf5 0.5\cf0 )))\
+        \
+        \cf9 star\cf0  = \cf4 SKSpriteNode\cf0 (color: \cf4 UIColor\cf0 .\cf7 whiteColor\cf0 (), size: \cf4 CGSize\cf0 (width: starSize, height: starSize))\
+        \cf9 star\cf0 !.\cf4 position\cf0  = \cf4 CGPoint\cf0 (x: \cf4 Int\cf0 (\cf7 arc4random_uniform\cf0 (\cf5 400\cf0 +\cf5 320\cf0 ) - \cf5 320\cf0 ), y: \cf5 1000\cf0 )\
+        \cf9 star\cf0 ?.\cf4 physicsBody\cf0  = \cf4 SKPhysicsBody\cf0 (rectangleOfSize: \cf9 star\cf0 !.\cf4 size\cf0 )\
+        \cf9 star\cf0 ?.\cf4 physicsBody\cf0 ?.\cf4 affectedByGravity\cf0  = \cf3 false\cf0 \
+        \cf2 //star?.physicsBody?.categoryBitMask = physicsCategory.enemy\
+\cf0         \cf2 //star?.physicsBody?.contactTestBitMask = physicsCategory.projectile\
+\cf0         \cf9 star\cf0 ?.\cf4 physicsBody\cf0 ?.\cf4 allowsRotation\cf0  = \cf3 false\cf0  \cf2 // prevents object from ro\
+\cf0         \cf9 star\cf0 ?.\cf4 physicsBody\cf0 ?.\cf4 dynamic\cf0  = \cf3 false\cf0 \
+        \cf9 star\cf0 ?.\cf4 zPosition\cf0  = -\cf5 2\cf0 \
+        \
+        \cf3 let\cf0  moveForward = \cf4 SKAction\cf0 .\cf7 moveToY\cf0 (-\cf5 5\cf0 , duration: \cf9 starSpeed\cf0 )\
+        \cf3 let\cf0  destroy = \cf4 SKAction\cf0 .\cf7 removeFromParent\cf0 ()\
+        \cf9 star\cf0 ?.\cf7 runAction\cf0 (\cf4 SKAction\cf0 .\cf7 sequence\cf0 ([moveForward, destroy]))\
+        \
+        \cf3 self\cf0 .\cf7 addChild\cf0 (\cf9 star\cf0 !)\
+    \}\
+    \
+\}}
